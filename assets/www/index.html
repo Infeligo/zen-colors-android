@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+    <title>Zen Colors</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #screen {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #speed-text {
+            position: absolute;
+            display: block;
+            top: 5px;
+            left: 5px;
+            font: 20px "Courier New";
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="screen">Your browser doesn't support HTML5 Canvas</canvas>
+    <span id="speed-text" width="480" height="640"></span>
+    <script>
+        (function () {
+            var screen = document.getElementById("screen");
+            var context = screen.getContext('2d');
+            var speedText = document.getElementById("speed-text");
+
+            requestFullScreen();
+
+            /* Color change cycle */
+
+            const HUE_STEP_MIN = 0.1;
+            const HUE_STEP_MAX = 10.0;
+
+            var hue = 0, hueStep = 3;
+
+            function step() {
+                context.fillStyle = "hsl(" + hue + ", 65%, 70%)";
+                context.fillRect(0, 0, screen.width, screen.height);
+                hue = (hue += hueStep) >= 360 ? hue - 360 : hue ;
+                speedText.innerHTML = hueStep.toFixed(2);
+            }
+
+            window.setInterval(step, 16);
+            step();
+
+
+            /* Touch events that control color transition softness */
+
+            var lastTouch = null;
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                if (!lastTouch && e.touches.length == 1) {
+                    lastTouch = e.changedTouches[0];
+                } else if (lastTouch) {
+                    lastTouch = null;
+                }
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                if (lastTouch) {
+                    var newTouch = e.changedTouches[0];
+                    hueStep += (lastTouch.pageY - newTouch.pageY) / 20;
+                    if (hueStep < HUE_STEP_MIN) hueStep = HUE_STEP_MIN;
+                    if (hueStep > HUE_STEP_MAX) hueStep = HUE_STEP_MAX;
+                    lastTouch = newTouch;
+                }
+            }
+
+            function handleTouchEndOrCancel() {
+                if (lastTouch) {
+                    lastTouch = null
+                }
+            }
+
+            screen.addEventListener("touchstart", handleTouchStart, false);
+            screen.addEventListener("touchmove", handleTouchMove, false);
+            screen.addEventListener("touchend", handleTouchEndOrCancel, false);
+            screen.addEventListener("touchcancel", handleTouchEndOrCancel, false);
+
+            function requestFullScreen() {
+                if (screen.requestFullScreen)
+                    screen.requestFullScreen();
+                else if (screen.webkitRequestFullScreen)
+                    screen.webkitRequestFullScreen();
+                else if (screen.mozRequestFullScreen)
+                    screen.mozRequestFullScreen();
+            }
+
+        })();
+    </script>
+</body>
+
+</html>
